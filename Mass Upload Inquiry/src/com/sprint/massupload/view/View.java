@@ -59,7 +59,9 @@ public class View extends JFrame implements ActionListener {
 		filenameField = new JTextField(20);
 		filenameField.setEnabled(false);
 		submitBtn = new JButton("Submit");
+		submitBtn.addActionListener(this);
 		chooseBtn = new JButton("Choose File");
+		chooseBtn.addActionListener(this);
 		
 		setLayout(new BorderLayout());
 		setResizable(false);
