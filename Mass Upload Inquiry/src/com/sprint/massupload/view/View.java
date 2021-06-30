@@ -11,6 +11,7 @@ import java.io.File;
 import java.nio.file.Paths;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -31,12 +32,16 @@ public class View extends JFrame implements ActionListener {
 	private JTextField filenameField;
 	private JButton chooseBtn, submitBtn;
 	private JPanel panel;
+	@SuppressWarnings("unused")
+	private JComboBox<?> dropdownSelector;
 	private GridBagConstraints gbc;
 	private Insets inset;
 	private JFileChooser filechooser;
 	private Controller controller;
 	private String filepath = "";
+	private static final String []DROPDOWN_ITEMS = new String[] {"RW2", "DC1"};
 	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public View() {
 		try {
 			for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
@@ -63,15 +68,18 @@ public class View extends JFrame implements ActionListener {
 		chooseBtn = new JButton("Choose File");
 		chooseBtn.addActionListener(this);
 		
+		dropdownSelector = new JComboBox(DROPDOWN_ITEMS);
+		
 		setLayout(new BorderLayout());
 		setResizable(false);
 		setTitle("Mass Upload Inquiry QTY and Status");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		add(panel, BorderLayout.CENTER);
-		setComponent(filenameField, panel, 0.5, 0, 0, 0, 0);
-		setComponent(chooseBtn, panel, 0.5, 1, 0, 0, 0);
-		setComponent(submitBtn, panel, 1, 0, 1, 0, 0);
+		setComponent(dropdownSelector, panel, 1, 0, 0, 0, 0);
+		setComponent(filenameField, panel, 0.5, 0, 1, 0, 0);
+		setComponent(chooseBtn, panel, 0.5, 1, 1, 0, 0);
+		setComponent(submitBtn, panel, 1, 0, 2, 0, 0);
 		
 		pack();
 		setLocationRelativeTo(null);
@@ -91,7 +99,7 @@ public class View extends JFrame implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent event) {
 		if (event.getSource() == submitBtn) {
-			controller.runApp(filepath);
+			controller.runApp(filepath, dropdownSelector.getSelectedItem().toString());
 		}
 		
 		if (event.getSource() == chooseBtn) {

@@ -31,14 +31,16 @@ public class Controller {
 		model = new Model();
 	}
 	
-	public void runApp(String filepath) {
-		readExcelAndProcess(filepath);
+	public void runApp(String filepath, String dropdownItem) {
+		String orgId = dropdownItem.equalsIgnoreCase("rw2") ? "204" : "107";
+		readExcelAndProcess(filepath, orgId);
 	}
 	
-	public Map<String, ExcelContent> readExcelAndProcess(String filepath) {
+	public Map<String, ExcelContent> readExcelAndProcess(String filepath, String orgId) {
 		ExcelContent tempContent = new ExcelContent();
 		Map<String, ExcelContent> excelContent = new HashMap<>();
 		String parameter = "";
+		int ctr = 0;
 		
 		try {
 			FileInputStream xlsxFile = new FileInputStream(new File(filepath));
@@ -52,71 +54,66 @@ public class Controller {
 			while (itr.hasNext()) {
 				Row nextRow = itr.next();
 				
-				if (!nextRow.getCell(0).getStringCellValue().trim().equalsIgnoreCase("sku")) {
+				if (!nextRow.getCell(0).getStringCellValue().trim().equalsIgnoreCase("sku") && !nextRow.getCell(0).getStringCellValue().trim().isEmpty()) {
 					tempContent = new ExcelContent();
 					tempContent.setSku(nextRow.getCell(0).getStringCellValue().trim());
 					tempContent.setQty((long) nextRow.getCell(1).getNumericCellValue());
 					tempContent.setAsurionAccept((long) nextRow.getCell(2).getNumericCellValue());
 					tempContent.setOkToAuction((long) nextRow.getCell(3).getNumericCellValue());
-					excelContent.put(nextRow.getCell(0).getStringCellValue().trim(), tempContent);
+					excelContent.put(nextRow.getCell(0).getStringCellValue().trim() + "-" + ctr, tempContent);
+					ctr++;
 				}
 				
 			}
 			
-			int ctr = 0;
+
+			ctr = 0;
 			for (String key : excelContent.keySet()) {
-				parameter += "'" + key + "',";
+				parameter += "'" + key.split("-")[0] + "',";
 				
 				if ((ctr % 999) == 0 && ctr != 0) {
 					parameter = parameter.substring(0, parameter.length() - 1);
-					model.getStatusAndQty(parameter, excelContent);
+					model.getStatusAndQty(parameter, orgId, excelContent);
 					parameter = "";
 				}
 				
 				if (ctr == excelContent.size() - 1) {
 					parameter = parameter.substring(0, parameter.length() - 1);
-					model.getStatusAndQty(parameter, excelContent);
+					model.getStatusAndQty(parameter, orgId, excelContent);
 					parameter = "";
 				}
 				
 				ctr++;
 			}
 			
-			model.getStatusAndQty(parameter, excelContent);
 			
 			Cell cell;
 			Row row;
-			ctr = 0;
 
 			style.setFillForegroundColor(IndexedColors.LIGHT_GREEN.index);
 			style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 			font.setBold(true);
 			style.setFont(font);
 			
-			for (String key : excelContent.keySet()) {
-				row = sheet.getRow(ctr);
+			row = sheet.getRow(0);
+			
+			cell = row.createCell(4);
+			cell.setCellValue("OMIM Qty");
+			cell.setCellStyle(style);
+			
+			cell = row.createCell(5);
+			cell.setCellValue("Status");
+			cell.setCellStyle(style);
+			
+			for (ctr = 0; ctr < excelContent.size(); ctr++) {
+				row = sheet.getRow(ctr + 1);
 				
 				cell = row.createCell(4);
-				if (ctr == 0) {
-					cell.setCellValue("OMIM Qty");
-					cell.setCellStyle(style);
-				
-				} else {
-					cell.setCellValue(excelContent.get(key).getOmimQty());
-					
-				}
-				
+				cell.setCellValue(excelContent.get(row.getCell(0).getStringCellValue().trim() + "-" + ctr).getOmimQty());
+
 				cell = row.createCell(5);
-				if (ctr == 0) {
-					cell.setCellValue("Status");
-					cell.setCellStyle(style);
-				
-				} else {
-					cell.setCellValue(excelContent.get(key).getStatus());
+				cell.setCellValue(excelContent.get(row.getCell(0).getStringCellValue().trim() + "-" + ctr).getStatus());
 					
-				}
-						
-				ctr++;
 			}
 			
 			xlsxFile.close();
@@ -128,7 +125,6 @@ public class Controller {
 			
 			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			JOptionPane.showMessageDialog(null, "File error: " + e.getMessage());
 		}
 		

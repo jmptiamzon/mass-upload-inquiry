@@ -14,7 +14,7 @@ public class ExcelContent {
 		asurionAccept = 0;
 		okToAuction = 0;
 		omimQty = 0;
-		status = "";
+		status = "Inactive";
 	}
 
 	public String getSku() {
